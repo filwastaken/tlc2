@@ -82,6 +82,15 @@ int main(int argc, char* argv[]){
     Ptr<Node> n3 = StationContainer.Get(3);
     Ptr<Node> n4 = StationContainer.Get(4);
 
+    string state = "off";
+    string valore= "2346";
+    if(useRtsCts){
+        // With this threshold set to 0, every packet will use Rts and Cts
+        valore="100";
+        state = "on";
+    }
+    Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue(valore));
+
     InternetStackHelper stack;
     stack.Install(NodeContainer::GetGlobal());
     /**
@@ -131,6 +140,7 @@ int main(int argc, char* argv[]){
     terminalMobility.Install(StationContainer);
 
     MobilityHelper APMobility;
+    /*
     // Since it's not given, it will be set as not moving in the center of the given rectangle
     APMobility.SetPositionAllocator("ns3::GridPositionAllocator",
         "GridWidth", 1,
@@ -139,6 +149,7 @@ int main(int argc, char* argv[]){
         "DeltaX", 0,
         "DeltaY", 0
     );
+    */
     APMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     APMobility.Install(ApContainer);
 
@@ -183,12 +194,7 @@ int main(int argc, char* argv[]){
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
     n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(6.0));
 
-    string state = "off";
-    if(useRtsCts){
-        // With this threshold set to 0, every packet will use Rts and Cts
-        Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("0"));
-        state = "on";
-    }
+    
 
     phy.SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
     phy.EnablePcap("task2-nAP.pcap", apDevices.Get(0), true, true);
