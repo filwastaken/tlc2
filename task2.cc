@@ -70,9 +70,8 @@ int main(int argc, char* argv[])
     YansWifiPhyHelper phy; //physical helper
     phy.SetChannel(channel.Create());  //installing channel on physical layer
 
-    WifiHelper wifi;  //ci sarebbe questo comando WifiHelper nome=WifiHelper::Default(); che c'è nel tutorial ma mi dice che non è riconosciuto
-    //wifi.SetRemoteStationManager("ns3::AarfWifiManager");
-    wifi.SetStandard(WIFI_STANDARD_80211g);
+    WifiHelper wifi;  
+    wifi.SetStandard(ns3::WifiStandard::WIFI_STANDARD_80211g);
 
     WifiMacHelper mac; //mac helper
     Ssid ssid=Ssid(ssid_name);  //create and initialize the service set identifier, the name that identifies a Wifi connection with its users
@@ -112,7 +111,6 @@ int main(int argc, char* argv[])
        n2  192.168.1.4
        n3  192.168.1.5
        n4  192.168.1.6
-    
     */
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
@@ -122,40 +120,38 @@ int main(int argc, char* argv[])
 
     ApplicationContainer serverApps = echoServer.Install(n0); //installing server on node n0
     serverApps.Start(Seconds(0.0)); //non è specificato
-    serverApps.Stop(Seconds(8.0)); //non è specificato
+    serverApps.Stop(Seconds(7.0)); //non è specificato
 
     UdpEchoClientHelper n3_Client(StaIpv4.GetAddress(0), portnumber); //n3 -> n0
-    n3_Client.SetAttribute("MaxPackets", UintegerValue(2));
     n3_Client.SetAttribute("Interval", TimeValue(Seconds(2.0)));
     n3_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n3_ClientApp = n3_Client.Install(n3);
-    n3_ClientApp.Start(Seconds(0.0));
+    n3_ClientApp.Start(Seconds(2.0));
     n3_ClientApp.Stop(Seconds(5.0));
 
     UdpEchoClientHelper n4_Client(StaIpv4.GetAddress(0), portnumber); //n4 -> n0
-    n4_Client.SetAttribute("MaxPackets", UintegerValue(2));
     n4_Client.SetAttribute("Interval", TimeValue(Seconds(3.0)));
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
 
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
     n4_ClientApp.Start(Seconds(1.0));
-    n4_ClientApp.Stop(Seconds(7.0));
+    n4_ClientApp.Stop(Seconds(6.0));
 
     
     //RIVEDERE
 
     MobilityHelper mobility;
 
-    mobility.SetPositionAllocator("ns3::GridPositionAllocator","MinX",DoubleValue(0.0),"MinY", DoubleValue(0.0),
-                                  "DeltaX",DoubleValue(10.0),"DeltaY",DoubleValue(10.0),
-                                  "GridWidth",UintegerValue(3),"LayoutType",StringValue("RowFirst"));
-
-    mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel", "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
-
+    mobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator",
+        "X", StringValue("ns3::UniformRandomVariable[Min=0|Max=90]"),
+        "Y", StringValue("ns3::UniformRandomVariable[Min=0|Max=90]"));
+    mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
     mobility.Install(StationContainer);
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(ApContainer);
+    
 
     string rtslimit ="1000";//ogni pacchetto minore di questo valore sarà trasmesso senza rts/cts
     string state="off";
@@ -178,7 +174,7 @@ int main(int argc, char* argv[])
         NS_LOG_INFO("Done.");
     }
     else{
-        AnimationInterface::SetConstantPosition(nAP, 10, 33);
+        AnimationInterface::SetConstantPosition(nAP, 45, 45);
         string pack_name="wireless-task2-rts-"+state+ ".xml";
         AnimationInterface anim(pack_name);
         uint32_t  nId_array[5];
