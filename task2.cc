@@ -1,3 +1,10 @@
+#include "ns3/command-line.h"
+#include "ns3/config.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/mobility-model.h"
+#include "ns3/string.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
@@ -5,12 +12,11 @@
 #include "ns3/network-module.h"
 #include "ns3/ssid.h"
 #include "ns3/yans-wifi-helper.h"
-#include "ns3/yans-wifi-channel.h"
 #include "ns3/wifi-module.h"
 #include "ns3/netanim-module.h"
-#include "ns3/basic-energy-source.h"
 #include "ns3/node.h"
-#include "string.h"
+#include "ns3/yans-wifi-channel.h"
+#include "ns3/yans-wifi-helper.h"
 
 /**
  *
@@ -69,7 +75,6 @@ int main(int argc, char* argv[]){
         LogComponentEnable("UdpEchoServerApplication", LOG_LEVEL_INFO);
     }
 
-
     //node container for the 5 station node
     NodeContainer StationContainer; StationContainer.Create(5);
 
@@ -83,13 +88,11 @@ int main(int argc, char* argv[]){
     Ptr<Node> n4 = StationContainer.Get(4);
 
     string state = "off";
-    string valore= "2346";
     if(useRtsCts){
         // With this threshold set to 0, every packet will use Rts and Cts
-        valore="100";
+        Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("100"));
         state = "on";
     }
-    Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue(valore));
 
     InternetStackHelper stack;
     stack.Install(NodeContainer::GetGlobal());
@@ -97,7 +100,7 @@ int main(int argc, char* argv[]){
      * Same as:
      * stack.Install(StationContainer);
      * stack.Install(ApContainer);
-    */
+    **/
 
     YansWifiChannelHelper channel = YansWifiChannelHelper::Default(); //channel helper
     YansWifiPhyHelper phy; //physical helper
@@ -129,7 +132,7 @@ int main(int argc, char* argv[]){
      *  n3  00:00:00:00:00:05
      *  n4  00:00:00:00:00:06
      *
-    */
+    **/
 
     MobilityHelper terminalMobility;
     terminalMobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator",
@@ -140,16 +143,16 @@ int main(int argc, char* argv[]){
     terminalMobility.Install(StationContainer);
 
     MobilityHelper APMobility;
-    /*
     // Since it's not given, it will be set as not moving in the center of the given rectangle
+
     APMobility.SetPositionAllocator("ns3::GridPositionAllocator",
-        "GridWidth", 1,
-        "MinX", 45,
-        "MinY", 45,
-        "DeltaX", 0,
-        "DeltaY", 0
+        "MinX", DoubleValue(45.0),
+        "MinY", DoubleValue(45.0),
+        "DeltaX", DoubleValue(0.0),
+        "DeltaY", DoubleValue(0.0),
+        "GridWidth", UintegerValue(1),
+        "LayoutType", StringValue("RowFirst")
     );
-    */
     APMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     APMobility.Install(ApContainer);
 
@@ -193,19 +196,16 @@ int main(int argc, char* argv[]){
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
     n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(6.0));
-
     
 
     phy.SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
     phy.EnablePcap("task2-nAP.pcap", apDevices.Get(0), true, true);
     phy.EnablePcap("task2-n4.pcap", staDevices.Get(3), true, true);
 
-
-    AnimationInterface anim("wireless-task2-rts-"+state+ ".xml");
-
+    AnimationInterface anim("wireless-task2-rts-"+ state + ".xml");
     if(useNetAnim) {
         //N0 EchoServer
-        string n0_Anim_Name = "SRV-"  + to_string(StationContainer.Get(0)->GetId());
+        string n0_Anim_Name = "SRV-" + to_string(StationContainer.Get(0)->GetId());
         anim.UpdateNodeDescription (n0, n0_Anim_Name);
         anim.UpdateNodeColor (n0, 255, 0, 0);   //RED
 
@@ -231,7 +231,6 @@ int main(int argc, char* argv[]){
 
         //AP
         anim.UpdateNodeDescription(nAP, "AP");
-        AnimationInterface::SetConstantPosition(nAP, 45, 45);
         anim.UpdateNodeColor(nAP, 66, 49, 137);  //DARK PURPLE
 
         anim.EnableQueueCounters(Seconds(0),Seconds(10)); // Useful since the delay matters in the queue
