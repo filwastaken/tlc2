@@ -21,37 +21,37 @@
 #include "ns3/yans-wifi-helper.h"
 
 /**
- * 
- *          Network Topology 
- * 
+ *
+ *          Network Topology
+ *
  *          Wifi 192.168.1.0
  *      *    *    *    *     *
  *      |    |    |    |     |
  *      n4   n3   n2   n0    n1
- * 
- * 
- * 
+ *
+ *
+ *
  *  Fatto da: Team 25
  *  matricole:
  *      - 1946083
  *      - 1962183
  *      - 1931976
  *      - 1943235
- * 
- * 
+ *
+ *
  * ---
  * Best RngRun option is 002. This way no packets will get lost due to distance.
  * ---
- * 
- * 
+ *
+ *
  *  In this network there are:
  *  -  UDPEcho Server on n0, port 20
  *  -  UDPEcho Client on n3, sends 2 packets to n0 ad 2s and 4s
  *  -  UDPEcho Client on n4, sends 2 packets to n0 at 1s and 2s
  *     - Packet trace active on node n2
- * 
+ *
  *  (packet size 512bytes)
- * 
+ *
  **/
 
 using namespace ns3;
@@ -60,7 +60,7 @@ NS_LOG_COMPONENT_DEFINE("HW2_Task1_Team_25");
 
 int main(int argc, char* argv[]){
     bool useRtsCts = false;
-    bool useNetAnim = true;
+    bool useNetAnim = false;
     bool verbose = false;
 
     CommandLine cmd(__FILE__);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]){
     );
     mobility.Install(WifiContainer);
 
-    //Ipv4 
+    //Ipv4
     Ipv4AddressHelper address;
     address.SetBase("192.168.1.0", "/24");
     address.Assign(WifiDevices);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]){
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
     uint16_t port = 20;
-    UdpEchoServerHelper echoServer(port); 
+    UdpEchoServerHelper echoServer(port);
 
     ApplicationContainer serverApps = echoServer.Install(n0);
     // Since start and stop are not given, it is being set as the entire simulation time
@@ -162,44 +162,35 @@ int main(int argc, char* argv[]){
         Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("0"));
         state = "on";
     }
-    
+
     phy.SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    phy.EnablePcap("task1-n2.pcap", WifiDevices.Get(2),true,true);
+    phy.EnablePcap("task1-n2.pcap", WifiDevices.Get(2), true, true);
 
-    if(!useNetAnim){    
-        NS_LOG_INFO("Run Simulation.");
-        Simulator::Stop(Seconds(10.0));
-        Simulator::Run();
-        Simulator::Destroy();
-        NS_LOG_INFO("Done.");
-    } else{
-        string pack_name = "wireless-task1-rts-" + state + ".xml";
-        AnimationInterface anim(pack_name);
-        uint32_t ids[5];
-        for(int i=0; i<5;i++) ids[i] = WifiContainer.Get(i)->GetId();
 
+    AnimationInterface anim("wireless-task1-rts-" + state + ".xml");
+    if(useNetAnim){
         //N0 EchoServer
-        string n0_Anim_Name = "SRV-" + to_string(ids[0]);
+        string n0_Anim_Name = "SRV-" + to_string(WifiContainer.Get(0)->GetId());
         anim.UpdateNodeDescription(n0, n0_Anim_Name);
         anim.UpdateNodeColor(n0, 255, 0, 0);   //RED
-    
+
         //N3 Echoclient
-        string n3_Anim_Name= "CLI-" + to_string(ids[3]);
+        string n3_Anim_Name = "CLI-" + to_string(WifiContainer.Get(3)->GetId());
         anim.UpdateNodeDescription(n3, n3_Anim_Name);
         anim.UpdateNodeColor(n3, 0, 255, 0); // GREEN
 
         //N4 Echoclient
-        string n4_Anim_Name= "CLI-" + to_string(ids[4]);
+        string n4_Anim_Name = "CLI-" + to_string(WifiContainer.Get(4)->GetId());
         anim.UpdateNodeDescription (n4, n4_Anim_Name);
         anim.UpdateNodeColor (n4, 0, 255, 0); //GREEN
 
         //N1 node
-        string n1_Anim_Name= "HOC-" + to_string(ids[1]);
+        string n1_Anim_Name = "HOC-" + to_string(WifiContainer.Get(1)->GetId());
         anim.UpdateNodeDescription (n1, n1_Anim_Name);
         anim.UpdateNodeColor (n1, 0, 0, 255); // BLUE
 
         //N2 node
-        string n2_Anim_Name= "HOC-" + to_string(ids[2]);
+        string n2_Anim_Name = "HOC-" + to_string(WifiContainer.Get(2)->GetId());
         anim.UpdateNodeDescription (n2, n2_Anim_Name);
         anim.UpdateNodeColor (n2, 0, 0, 255); //BLUE
 
@@ -210,13 +201,13 @@ int main(int argc, char* argv[]){
             Seconds(0.25)); // Interval
         anim.EnableWifiMacCounters(Seconds(0), Seconds(10)); // Optional
         anim.EnableWifiPhyCounters(Seconds(0), Seconds(10)); // Optional
-        
-        NS_LOG_INFO("Run Simulation.");
-        Simulator::Stop(Seconds(10.0));
-        Simulator::Run();
-        Simulator::Destroy();
-        NS_LOG_INFO("Done.");
-    }
+		}
+
+    NS_LOG_INFO("Run Simulation.");
+		Simulator::Stop(Seconds(10.0));
+    Simulator::Run();
+    Simulator::Destroy();
+    NS_LOG_INFO("Done.");
 
     return 0;
 }
