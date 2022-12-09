@@ -20,9 +20,42 @@
 #include "ns3/yans-wifi-channel.h"
 #include "ns3/yans-wifi-helper.h"
 
+/**
+ * 
+ *          Network Topology 
+ * 
+ *          Wifi 192.168.1.0
+ *      *    *    *    *     *
+ *      |    |    |    |     |
+ *      n4   n3   n2   n0    n1
+ * 
+ * 
+ * 
+ *  Fatto da: Team 25
+ *  matricole:
+ *      - 1946083
+ *      - 1962183
+ *      - 1931976
+ *      - 1943235
+ * 
+ * 
+ * ---
+ * Best RngRun option is 002. This way no packets will get lost due to distance.
+ * ---
+ * 
+ * 
+ *  In this network there are:
+ *  -  UDPEcho Server on n0, port 20
+ *  -  UDPEcho Client on n3, sends 2 packets to n0 ad 2s and 4s
+ *  -  UDPEcho Client on n4, sends 2 packets to n0 at 1s and 2s
+ *     - Packet trace active on node n2
+ * 
+ *  (packet size 512bytes)
+ * 
+ **/
+
 using namespace ns3;
 using namespace std;
-
 NS_LOG_COMPONENT_DEFINE("HW2_Task1_Team_25");
 
 int main(int argc, char* argv[]){
@@ -35,15 +68,15 @@ int main(int argc, char* argv[]){
     cmd.AddValue("verbose", "Tell echo applications to log if true", verbose);
     cmd.AddValue("useNetAnim", "Generates the NetAnim files", useNetAnim);
     cmd.Parse(argc, argv);
-    
+
     NodeContainer WifiContainer;  // Node container for the 5 terminals
     WifiContainer.Create(5);
 
     Ptr<Node> n0 = WifiContainer.Get(0);
-    Ptr<Node> n1 = WifiContainer.Get(0);
-    Ptr<Node> n2 = WifiContainer.Get(1);
-    Ptr<Node> n3 = WifiContainer.Get(2);
-    Ptr<Node> n4 = WifiContainer.Get(3);
+    Ptr<Node> n1 = WifiContainer.Get(1);
+    Ptr<Node> n2 = WifiContainer.Get(2);
+    Ptr<Node> n3 = WifiContainer.Get(3);
+    Ptr<Node> n4 = WifiContainer.Get(4);
 
     // Installing the StackHelper on every node
     InternetStackHelper stack;
@@ -101,7 +134,6 @@ int main(int argc, char* argv[]){
      **/
 
     Ipv4Address n0_address = Ipv4Interface.GetAddress(0);
-
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
     uint16_t port = 20;
@@ -115,21 +147,20 @@ int main(int argc, char* argv[]){
     n3_Client.SetAttribute("Interval", TimeValue(Seconds(2.0)));
     n3_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n3_ClientApp = n3_Client.Install(n3);
-    n3_ClientApp.Start(Seconds(2.0));
-    n3_ClientApp.Stop(Seconds(5.0));
+    n3_ClientApp.Start(Seconds(2.0)); n3_ClientApp.Stop(Seconds(5.0));
 
     UdpEchoClientHelper n4_Client(n0_address, port);            // n4 sends to n0 (by its ipv4 address)
     n4_Client.SetAttribute("Interval", TimeValue(Seconds(1.0)));
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
-    n4_ClientApp.Start(Seconds(1.0));
-    n4_ClientApp.Stop(Seconds(2.5)); //Second packets gets sent and then stops (before third one)
+    //Second packets gets sent and then stops (before third one)
+    n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(2.5));
 
     string state = "off";
     if(useRtsCts){
-        string rtslimit = "0"; //quindi se lo mettiamo a zero tutti i pacchetti saranno trasmessi con rts/cts
+        // With this threshold set to 0, every packet will use Rts and Cts
+        Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("0"));
         state = "on";
-        Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue(rtslimit));
     }
     
     phy.SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
@@ -155,7 +186,7 @@ int main(int argc, char* argv[]){
         //N3 Echoclient
         string n3_Anim_Name= "CLI-" + to_string(ids[3]);
         anim.UpdateNodeDescription(n3, n3_Anim_Name);
-        anim.UpdateNodeColor(n3, 0, 255, 0); 
+        anim.UpdateNodeColor(n3, 0, 255, 0); // GREEN
 
         //N4 Echoclient
         string n4_Anim_Name= "CLI-" + to_string(ids[4]);
@@ -165,7 +196,7 @@ int main(int argc, char* argv[]){
         //N1 node
         string n1_Anim_Name= "HOC-" + to_string(ids[1]);
         anim.UpdateNodeDescription (n1, n1_Anim_Name);
-        anim.UpdateNodeColor (n1, 0, 0, 255); 
+        anim.UpdateNodeColor (n1, 0, 0, 255); // BLUE
 
         //N2 node
         string n2_Anim_Name= "HOC-" + to_string(ids[2]);
@@ -174,9 +205,9 @@ int main(int argc, char* argv[]){
 
         anim.EnablePacketMetadata(); // Optional
         anim.EnableIpv4RouteTracking("routingtable-wireless.xml",
-            Seconds(0),     //inizio
-            Seconds(5),     //fine
-            Seconds(0.25)); //intervallo
+            Seconds(0),     // Start
+            Seconds(5),     // Finish
+            Seconds(0.25)); // Interval
         anim.EnableWifiMacCounters(Seconds(0), Seconds(10)); // Optional
         anim.EnableWifiPhyCounters(Seconds(0), Seconds(10)); // Optional
         
