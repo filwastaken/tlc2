@@ -164,7 +164,7 @@ int main(int argc, char* argv[]){
     }
     
     phy.SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    phy.EnablePcap("task2-n4.pcap", WifiDevices.Get(3),true,true);
+    phy.EnablePcap("task1-n2.pcap", WifiDevices.Get(2),true,true);
 
     if(!useNetAnim){    
         NS_LOG_INFO("Run Simulation.");
