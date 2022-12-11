@@ -1,0 +1,18 @@
+CURRENTDIR=$(pwd)
+
+cd ~/ns-3-dev-git/scratch
+mkdir tempfolder
+cd tempfolder
+cp $CURRENTDIR/task1.cc ./
+cd ~/ns-3-dev-git
+./ns3 run "scratch/tempfolder/task1.cc --RngRun=7783477 --useNetAnim"
+./ns3 run "scratch/tempfolder/task1.cc --RngRun=7783477 --useNetAnim --useRtsCts"
+rm scratch/tempfolder/task1.cc
+cd scratch/tempfolder
+cp $CURRENTDIR/task2.cc ./
+cd ~/ns-3-dev-git
+./ns3 run "scratch/tempfolder/task2.cc --RngRun=7783477 --useNetAnim --ssid=7783477"
+./ns3 run "scratch/tempfolder/task2.cc --RngRun=7783477 --useNetAnim --ssid=7783477 --useRtsCts"
+rm scratch/tempfolder/task2.cc
+rmdir scratch/tempfolder
+cd $CURRENTDIR
