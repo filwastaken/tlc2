@@ -179,7 +179,7 @@ int main(int argc, char* argv[]){
     serverApps.Start(Seconds(0.0)); serverApps.Stop(Seconds(7.0));
 
     UdpEchoClientHelper n3_Client(n0_address, portnumber);      // n3 sends to n0 (by its ipv4 address)
-    n3_Client.SetAttribute("MaxPackets", UIntegerValue(2));
+    n3_Client.SetAttribute("MaxPackets", UintegerValue(2));
     n3_Client.SetAttribute("Interval", TimeValue(Seconds(2.0)));
     n3_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n3_ClientApp = n3_Client.Install(n3);
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]){
     n3_ClientApp.Stop(Seconds(5.0));
 
     UdpEchoClientHelper n4_Client(n0_address, portnumber);      // n4 sends to n0 (by its ipv4 address)
-    n4_Client.SetAttribute("MaxPackets", UIntegerValue(2));
+    n4_Client.SetAttribute("MaxPackets", UintegerValue(2));
     n4_Client.SetAttribute("Interval", TimeValue(Seconds(3.0)));
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
