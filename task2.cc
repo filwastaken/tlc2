@@ -36,9 +36,6 @@
  *      - 1943235
  *
  * ---
- * Best RngRun option is 303. This way no packets will get lost due to distance.
- * ---
- *
  *
  *  In this network there are:
  *  -  UDPEcho Server on n0, port 21
@@ -106,7 +103,10 @@ int main(int argc, char* argv[]){
     YansWifiPhyHelper phy; //physical helper
     phy.SetChannel(channel.Create());  //installing channel on physical layer
 
-    WifiHelper wifi; wifi.SetStandard(ns3::WifiStandard::WIFI_STANDARD_80211g);
+    
+    WifiHelper wifi; 
+    wifi.SetRemoteStationManager("ns3::AarfWifiManager");
+    wifi.SetStandard(ns3::WifiStandard::WIFI_STANDARD_80211g);
 
     WifiMacHelper mac; //mac helper
     /**
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]){
 
     NetDeviceContainer staDevices;
     mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid), "ActiveProbing", BooleanValue(false)); //set mac for stationNodes
-    staDevices = wifi.Install(phy, mac, StationContainer); //installa nel contenitore di dispositivi, lo strato fisico e il mac sul contenitore di
+    staDevices = wifi.Install(phy, mac, StationContainer); 
     /**
      *
      *      MAC addresses:
@@ -134,27 +134,20 @@ int main(int argc, char* argv[]){
      *
     **/
 
-    MobilityHelper terminalMobility;
-    terminalMobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator",
-        "X", StringValue("ns3::UniformRandomVariable[Min=0|Max=90]"),
-        "Y", StringValue("ns3::UniformRandomVariable[Min=0|Max=90]"));
-    terminalMobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+    MobilityHelper Mobility;
+   
+    Mobility.SetPositionAllocator("ns3::GridPositionAllocator", 
+                                "MinX", DoubleValue(0.0), "MinY", DoubleValue(0.0),
+                                "DeltaX", DoubleValue(5.0), "DeltaY", DoubleValue(10.0),
+                                "GridWidth", UintegerValue(3), "LayoutType", StringValue("RowFirst"));
+
+    Mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
         "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
-    terminalMobility.Install(StationContainer);
 
-    MobilityHelper APMobility;
-    // Since it's not given, it will be set as not moving in the center of the given rectangle
+    Mobility.Install(StationContainer);
 
-    APMobility.SetPositionAllocator("ns3::GridPositionAllocator",
-        "MinX", DoubleValue(45.0),
-        "MinY", DoubleValue(45.0),
-        "DeltaX", DoubleValue(0.0),
-        "DeltaY", DoubleValue(0.0),
-        "GridWidth", UintegerValue(1),
-        "LayoutType", StringValue("RowFirst")
-    );
-    APMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    APMobility.Install(ApContainer);
+    Mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    Mobility.Install(ApContainer);
 
     //Ipv4
     Ipv4AddressHelper address;
@@ -182,7 +175,7 @@ int main(int argc, char* argv[]){
 
     ApplicationContainer serverApps = echoServer.Install(n0); //installing server on node n0
     // Since start and stop of the server it's not given, the entire simulation time will be used
-    serverApps.Start(Seconds(0.0)); serverApps.Stop(Seconds(10.0));
+    serverApps.Start(Seconds(0.0)); serverApps.Stop(Seconds(7.0));
 
     UdpEchoClientHelper n3_Client(n0_address, portnumber);      // n3 sends to n0 (by its ipv4 address)
     n3_Client.SetAttribute("Interval", TimeValue(Seconds(2.0)));
@@ -195,12 +188,17 @@ int main(int argc, char* argv[]){
     n4_Client.SetAttribute("Interval", TimeValue(Seconds(3.0)));
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
-    n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(6.0));
+    n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(5.0));
     
 
-    phy.SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    phy.EnablePcap("task2-nAP.pcap", apDevices.Get(0), true, true);
-    phy.EnablePcap("task2-n4.pcap", staDevices.Get(3), true, true);
+    //configuring pcaps
+    
+    string pcap_name="task2-" + state + "-" + to_string(StationContainer.Get(4)->GetId()) + ".pcap";
+    phy.EnablePcap(pcap_name, staDevices.Get(3), true, true);
+    pcap_name="task2-" + state + "-" + to_string(ApContainer.Get(0)->GetId()) + ".pcap";
+    phy.EnablePcap(pcap_name, apDevices.Get(0), true, true);
+    
+    //netanim
 
     AnimationInterface anim("wireless-task2-rts-"+ state + ".xml");
     if(useNetAnim) {
@@ -235,16 +233,16 @@ int main(int argc, char* argv[]){
 
         anim.EnableQueueCounters(Seconds(0),Seconds(10)); // Useful since the delay matters in the queue
         anim.EnablePacketMetadata(); // Optional
-        anim.EnableIpv4RouteTracking("routingtable-wireless.xml",
+        anim.EnableIpv4RouteTracking("task2-" + state + "-routingtable-wireless.xml",
             Seconds(0),     // Start
             Seconds(5),     // Finish
             Seconds(0.25)); // Interval
-        anim.EnableWifiMacCounters(Seconds(0), Seconds(10)); // Optional
-        anim.EnableWifiPhyCounters(Seconds(0), Seconds(10)); // Optional
+        anim.EnableWifiMacCounters(Seconds(0), Seconds(10)); 
+        anim.EnableWifiPhyCounters(Seconds(0), Seconds(10)); 
     }
 
     NS_LOG_INFO("Run Simulation.");
-    Simulator::Stop(Seconds(10.0));
+    Simulator::Stop(Seconds(7.0));
     Simulator::Run();
     Simulator::Destroy();
     NS_LOG_INFO("Done.");
