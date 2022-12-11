@@ -24,8 +24,7 @@
  *          Wifi 192.168.1.0/24
  *      *    *    *     *    *     *
  *      |    |    |     |    |     |
- *      n4   n3   n2   nAP   n0    n1
- *
+ *      n0   n1   n2   nAP   n3    n4
  *
  *
  *  Fatto da: Team 25
@@ -35,7 +34,7 @@
  *      - 1931976
  *      - 1943235
  *
- * ---
+ *
  *
  *  In this network there are:
  *  -  UDPEcho Server on n0, port 21
@@ -52,9 +51,7 @@ using namespace std;
 NS_LOG_COMPONENT_DEFINE("HW2_Task2_Team_25");
 
 int main(int argc, char* argv[]){
-    bool verbose = false;
-    bool useRtsCts = false;
-    bool useNetAnim = false;
+    bool verbose = false, useRtsCts = false, useNetAnim = false;
 
     // default SSID
     string ssid_name = "TLC2022";
@@ -134,20 +131,24 @@ int main(int argc, char* argv[]){
      *
     **/
 
-    MobilityHelper Mobility;
-   
-    Mobility.SetPositionAllocator("ns3::GridPositionAllocator", 
-                                "MinX", DoubleValue(0.0), "MinY", DoubleValue(0.0),
-                                "DeltaX", DoubleValue(5.0), "DeltaY", DoubleValue(10.0),
-                                "GridWidth", UintegerValue(3), "LayoutType", StringValue("RowFirst"));
+    MobilityHelper mobilityHelp;
+    mobilityHelp.SetPositionAllocator(
+        "ns3::GridPositionAllocator", 
+        "MinX", DoubleValue(0.0),
+        "MinY", DoubleValue(0.0),
+        "DeltaX", DoubleValue(5.0),
+        "DeltaY", DoubleValue(10.0),
+        "GridWidth", UintegerValue(3),
+        "LayoutType", StringValue("RowFirst")
+    );
+    mobilityHelp.SetMobilityModel(
+        "ns3::RandomWalk2dMobilityModel",
+        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90))
+    );
+    mobilityHelp.Install(StationContainer);
 
-    Mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
-        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
-
-    Mobility.Install(StationContainer);
-
-    Mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    Mobility.Install(ApContainer);
+    mobilityHelp.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobilityHelp.Install(ApContainer);
 
     //Ipv4
     Ipv4AddressHelper address;
@@ -178,6 +179,7 @@ int main(int argc, char* argv[]){
     serverApps.Start(Seconds(0.0)); serverApps.Stop(Seconds(7.0));
 
     UdpEchoClientHelper n3_Client(n0_address, portnumber);      // n3 sends to n0 (by its ipv4 address)
+    n3_Client.SetAttribute("MaxPackets", UIntegerValue(2));
     n3_Client.SetAttribute("Interval", TimeValue(Seconds(2.0)));
     n3_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n3_ClientApp = n3_Client.Install(n3);
@@ -185,6 +187,7 @@ int main(int argc, char* argv[]){
     n3_ClientApp.Stop(Seconds(5.0));
 
     UdpEchoClientHelper n4_Client(n0_address, portnumber);      // n4 sends to n0 (by its ipv4 address)
+    n4_Client.SetAttribute("MaxPackets", UIntegerValue(2));
     n4_Client.SetAttribute("Interval", TimeValue(Seconds(3.0)));
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
@@ -192,15 +195,12 @@ int main(int argc, char* argv[]){
     
 
     //configuring pcaps
-    
-    string pcap_name="task2-" + state + "-" + to_string(StationContainer.Get(4)->GetId()) + ".pcap";
+    string pcap_name = "task2-" + state + "-" + to_string(StationContainer.Get(4)->GetId()) + ".pcap";
     phy.EnablePcap(pcap_name, staDevices.Get(3), true, true);
-    pcap_name="task2-" + state + "-" + to_string(ApContainer.Get(0)->GetId()) + ".pcap";
+    pcap_name = "task2-" + state + "-" + to_string(ApContainer.Get(0)->GetId()) + ".pcap";
     phy.EnablePcap(pcap_name, apDevices.Get(0), true, true);
     
-    //netanim
-
-    AnimationInterface anim("wireless-task2-rts-"+ state + ".xml");
+    /*NetAnim*/ AnimationInterface anim("wireless-task2-rts-"+ state + ".xml");
     if(useNetAnim) {
         //N0 EchoServer
         string n0_Anim_Name = "SRV-" + to_string(StationContainer.Get(0)->GetId());
@@ -231,14 +231,14 @@ int main(int argc, char* argv[]){
         anim.UpdateNodeDescription(nAP, "AP");
         anim.UpdateNodeColor(nAP, 66, 49, 137);  //DARK PURPLE
 
-        anim.EnableQueueCounters(Seconds(0),Seconds(10)); // Useful since the delay matters in the queue
+        anim.EnableQueueCounters(Seconds(0),Seconds(7)); // Useful since the delay matters in the queue
         anim.EnablePacketMetadata(); // Optional
         anim.EnableIpv4RouteTracking("task2-" + state + "-routingtable-wireless.xml",
             Seconds(0),     // Start
-            Seconds(5),     // Finish
+            Seconds(7),     // Finish
             Seconds(0.25)); // Interval
-        anim.EnableWifiMacCounters(Seconds(0), Seconds(10)); 
-        anim.EnableWifiPhyCounters(Seconds(0), Seconds(10)); 
+        anim.EnableWifiMacCounters(Seconds(0), Seconds(7)); 
+        anim.EnableWifiPhyCounters(Seconds(0), Seconds(7)); 
     }
 
     NS_LOG_INFO("Run Simulation.");
