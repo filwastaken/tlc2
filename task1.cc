@@ -147,12 +147,14 @@ int main(int argc, char* argv[]){
     serverApps.Start(Seconds(0.0)); serverApps.Stop(Seconds(7.0));
 
     UdpEchoClientHelper n3_Client(n0_address, port);            // n3 sends to n0 (by its ipv4 address)
+    n3_Client.SetAttribute("MaxPackets",UintegerValue(2));
     n3_Client.SetAttribute("Interval", TimeValue(Seconds(2.0)));
     n3_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n3_ClientApp = n3_Client.Install(n3);
     n3_ClientApp.Start(Seconds(2.0)); n3_ClientApp.Stop(Seconds(5.0));
 
     UdpEchoClientHelper n4_Client(n0_address, port);            // n4 sends to n0 (by its ipv4 address)
+    n4_Client.SetAttribute("MaxPackets",UintegerValue(2));
     n4_Client.SetAttribute("Interval", TimeValue(Seconds(1.0)));
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
@@ -196,10 +198,10 @@ int main(int argc, char* argv[]){
         anim.EnablePacketMetadata(); 
         anim.EnableIpv4RouteTracking("task1-" + state +"-routingtable-wireless.xml",
             Seconds(0),     // Start
-            Seconds(5),     // Finish
+            Seconds(7),     // Finish
             Seconds(0.25)); // Interval
-        anim.EnableWifiMacCounters(Seconds(0), Seconds(10)); 
-        anim.EnableWifiPhyCounters(Seconds(0), Seconds(10)); 
+        anim.EnableWifiMacCounters(Seconds(0), Seconds(7)); 
+        anim.EnableWifiPhyCounters(Seconds(0), Seconds(7)); 
     }
     
     NS_LOG_INFO("Run Simulation.");
