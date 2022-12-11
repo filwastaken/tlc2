@@ -19,14 +19,11 @@
 #include "ns3/yans-wifi-helper.h"
 
 /**
- *
  *          Network Topology 
- * 
  *          Wifi 192.168.1.0
  *      *    *    *    *     *
  *      |    |    |    |     |
- *      n4   n3   n2   n0    n1
- *
+ *      n0   n1   n2   n3    n4
  *
  *
  *  Fatto da: Team 25
@@ -36,7 +33,7 @@
  *      - 1931976
  *      - 1943235
  *
- * ---
+ *
  *
  *  In this network there are:
  *  -  UDPEcho Server on n0, port 20
@@ -53,9 +50,7 @@ using namespace std;
 NS_LOG_COMPONENT_DEFINE("HW2_Task1_Team_25");
 
 int main(int argc, char* argv[]){
-    bool useRtsCts = false;
-    bool useNetAnim = false;
-    bool verbose = false;
+    bool useRtsCts = false, useNetAnim = false, verbose = false;
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("useRtsCts", "Forces the Network to use Handshake RTS/CTS", useRtsCts);
@@ -74,14 +69,14 @@ int main(int argc, char* argv[]){
 
     string state = "off";
     if(useRtsCts){
-        // With this threshold set to 0, every packet will use Rts and Cts
-        state = "on";
+        // With this threshold set to 100, every udp packet will use Rts and Cts
+         state = "on";
         Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("100"));
     }
 
     // Installing the StackHelper on every node
     InternetStackHelper stack;
-    stack.Install(WifiContainer); // or stack.Install(NodeContainer::GetGlobal());
+    stack.Install(WifiContainer); // same as stack.Install(NodeContainer::GetGlobal());
 
     YansWifiChannelHelper channel = YansWifiChannelHelper::Default(); //channel helper
     YansWifiPhyHelper phy; //physical helper
@@ -108,11 +103,14 @@ int main(int argc, char* argv[]){
     NetDeviceContainer WifiDevices = wifi.Install(phy, mac, WifiContainer);
 
     MobilityHelper mobility;
-   
     mobility.SetPositionAllocator("ns3::GridPositionAllocator", 
-                                "MinX", DoubleValue(0.0), "MinY", DoubleValue(0.0),
-                                "DeltaX", DoubleValue(5.0), "DeltaY", DoubleValue(10.0),
-                                "GridWidth", UintegerValue(3), "LayoutType", StringValue("RowFirst"));
+        "MinX", DoubleValue(0.0),
+        "MinY", DoubleValue(0.0),
+        "DeltaX", DoubleValue(5.0),
+        "DeltaY", DoubleValue(10.0),
+        "GridWidth", UintegerValue(3),
+        "LayoutType", StringValue("RowFirst")
+    );
 
     mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
         "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
@@ -134,7 +132,7 @@ int main(int argc, char* argv[]){
      * n3  192.168.1.4
      * n4  192.168.1.5
      *
-     **/
+    **/
 
     Ipv4Address n0_address = Ipv4Interface.GetAddress(0);
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
@@ -163,7 +161,7 @@ int main(int argc, char* argv[]){
     
     //configuring pcap
 
-    string pcap_name="task1-" + state + "-" + to_string(WifiContainer.Get(2)->GetId()) + ".pcap";
+    string pcap_name = "task1-" + state + "-" + to_string(WifiContainer.Get(2)->GetId()) + ".pcap";
     phy.EnablePcap(pcap_name, WifiDevices.Get(2), true, true);
     
     //netanim
@@ -196,7 +194,7 @@ int main(int argc, char* argv[]){
         anim.UpdateNodeColor (n2, 0, 0, 255); //BLUE
 
         anim.EnablePacketMetadata(); 
-        anim.EnableIpv4RouteTracking("task1-" + state +"-routingtable-wireless.xml",
+        anim.EnableIpv4RouteTracking("task1-" + state + "-routingtable-wireless.xml",
             Seconds(0),     // Start
             Seconds(7),     // Finish
             Seconds(0.25)); // Interval
