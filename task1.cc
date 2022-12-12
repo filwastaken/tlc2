@@ -74,10 +74,6 @@ int main(int argc, char* argv[]){
         Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("100"));
     }
 
-    // Installing the StackHelper on every node
-    InternetStackHelper stack;
-    stack.Install(WifiContainer); // same as stack.Install(NodeContainer::GetGlobal());
-
     YansWifiChannelHelper channel = YansWifiChannelHelper::Default(); //channel helper
     YansWifiPhyHelper phy; //physical helper
     phy.SetChannel(channel.Create());  //installing channel on physical layer
@@ -117,6 +113,10 @@ int main(int argc, char* argv[]){
 
     mobility.Install(WifiContainer);
 
+    // Installing the StackHelper on every node
+    InternetStackHelper stack;
+    stack.Install(WifiContainer); // same as stack.Install(NodeContainer::GetGlobal());
+    
     //Ipv4 
     Ipv4AddressHelper address;
     address.SetBase("192.168.1.0", "/24");
@@ -158,6 +158,7 @@ int main(int argc, char* argv[]){
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
     //Second packets gets sent and then stops (before third one)
     n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(2.5));
+    
     
     //configuring pcap
 
