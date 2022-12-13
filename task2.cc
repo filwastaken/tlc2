@@ -239,11 +239,7 @@ int main(int argc, char* argv[]){
         anim.UpdateNodeColor(nAP, 66, 49, 137);  //DARK PURPLE
 
         anim.EnableQueueCounters(Seconds(0),Seconds(7)); // Useful since the delay matters in the queue
-        anim.EnablePacketMetadata(); // Optional
-        anim.EnableIpv4RouteTracking("task2-" + state + "-routingtable-wireless.xml",
-            Seconds(0),     // Start
-            Seconds(7),     // Finish
-            Seconds(0.25)); // Interval
+        anim.EnablePacketMetadata();
         anim.EnableWifiMacCounters(Seconds(0), Seconds(7)); 
         anim.EnableWifiPhyCounters(Seconds(0), Seconds(7));
     }
