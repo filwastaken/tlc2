@@ -7,12 +7,19 @@ cp $CURRENTDIR/task1.cc ./
 cd ~/ns-3-dev-git
 ./ns3 run "scratch/tempfolder/task1.cc --RngRun=7783477 --useNetAnim"
 ./ns3 run "scratch/tempfolder/task1.cc --RngRun=7783477 --useNetAnim --useRtsCts"
+mv task1-off-2.pcap $CURRENTDIR
+mv wireless-task1-rts-off.xml $CURRENTDIR
+mv wireless-task1-rts-on.xml $CURRENTDIR
 rm scratch/tempfolder/task1.cc
 cd scratch/tempfolder
 cp $CURRENTDIR/task2.cc ./
 cd ~/ns-3-dev-git
 ./ns3 run "scratch/tempfolder/task2.cc --RngRun=7783477 --useNetAnim --ssid=7783477"
 ./ns3 run "scratch/tempfolder/task2.cc --RngRun=7783477 --useNetAnim --ssid=7783477 --useRtsCts"
+mv task2-off-4.pcap $CURRENTDIR
+mv task2-off-5.pcap $CURRENTDIR
+mv wireless-task2-rts-off.xml $CURRENTDIR
+mv wireless-task2-rts-on.xml $CURRENTDIR
 rm scratch/tempfolder/task2.cc
 rmdir scratch/tempfolder
 cd $CURRENTDIR

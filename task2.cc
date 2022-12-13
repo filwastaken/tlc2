@@ -56,7 +56,7 @@ NS_LOG_COMPONENT_DEFINE("HW2_Task2_Team_25");
 
 int main(int argc, char* argv[]){
     bool useRtsCts = false, useNetAnim = false, verbose = false;
-    
+
     // default SSID
     string ssid_name = "TLC2022";
 
@@ -97,8 +97,8 @@ int main(int argc, char* argv[]){
     YansWifiPhyHelper phy; //physical helper
     phy.SetChannel(channel.Create());  //installing channel on physical layer
 
-    
-    WifiHelper wifi; 
+
+    WifiHelper wifi;
     wifi.SetRemoteStationManager("ns3::AarfWifiManager");
     wifi.SetStandard(ns3::WifiStandard::WIFI_STANDARD_80211g);
 
@@ -111,11 +111,11 @@ int main(int argc, char* argv[]){
 
     NetDeviceContainer apDevices;
     mac.SetType("ns3::ApWifiMac", "Ssid", SsidValue(ssid), "BeaconGeneration", BooleanValue(true));
-    apDevices = wifi.Install(phy, mac, ApContainer);  
+    apDevices = wifi.Install(phy, mac, ApContainer);
 
     NetDeviceContainer staDevices;
     mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid), "ActiveProbing", BooleanValue(false)); //set mac for stationNodes
-    staDevices = wifi.Install(phy, mac, StationContainer); 
+    staDevices = wifi.Install(phy, mac, StationContainer);
     /**
      *
      *      MAC addresses:
@@ -131,14 +131,21 @@ int main(int argc, char* argv[]){
     //setting mobility
 
     MobilityHelper Mobility;
-   
-    Mobility.SetPositionAllocator("ns3::GridPositionAllocator", 
-                                "MinX", DoubleValue(0.0), "MinY", DoubleValue(0.0),
-                                "DeltaX", DoubleValue(5.0), "DeltaY", DoubleValue(10.0),
-                                "GridWidth", UintegerValue(3), "LayoutType", StringValue("RowFirst"));
 
-    Mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
-        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
+    Mobility.SetPositionAllocator(
+        "ns3::GridPositionAllocator",
+        "MinX", DoubleValue(0.0),
+        "MinY", DoubleValue(0.0),
+        "DeltaX", DoubleValue(5.0),
+        "DeltaY", DoubleValue(10.0),
+        "GridWidth", UintegerValue(3),
+        "LayoutType", StringValue("RowFirst")
+    );
+
+    Mobility.SetMobilityModel(
+        "ns3::RandomWalk2dMobilityModel",
+        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90))
+    );
 
     Mobility.Install(StationContainer);
 
@@ -171,7 +178,7 @@ int main(int argc, char* argv[]){
      *  n3  192.168.1.5
      *  n4  192.168.1.6
      *
-    */
+    **/
 
     Ipv4Address n0_address = StaIpv4.GetAddress(0);
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
@@ -197,16 +204,15 @@ int main(int argc, char* argv[]){
     n4_Client.SetAttribute("PacketSize", UintegerValue(512));
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
     n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(5.0));
-    
+
     //configuring pcap
 
     string pcap_name="task2-" + state + "-" + to_string(StationContainer.Get(4)->GetId()) + ".pcap";
     phy.EnablePcap(pcap_name, staDevices.Get(3), true, true);  //pcap for n4
     pcap_name="task2-" + state + "-" + to_string(ApContainer.Get(0)->GetId()) + ".pcap";
     phy.EnablePcap(pcap_name, apDevices.Get(0), true, true);  //pcap for AP (Id=5)
-    
-    //netanim
 
+    //netanim
     AnimationInterface anim("wireless-task2-rts-"+ state + ".xml");
     if(useNetAnim) {
         //N0 EchoServer
@@ -238,9 +244,8 @@ int main(int argc, char* argv[]){
         anim.UpdateNodeDescription(nAP, "AP");
         anim.UpdateNodeColor(nAP, 66, 49, 137);  //DARK PURPLE
 
-        anim.EnableQueueCounters(Seconds(0),Seconds(7)); // Useful since the delay matters in the queue
         anim.EnablePacketMetadata();
-        anim.EnableWifiMacCounters(Seconds(0), Seconds(7)); 
+        anim.EnableWifiMacCounters(Seconds(0), Seconds(7));
         anim.EnableWifiPhyCounters(Seconds(0), Seconds(7));
     }
 

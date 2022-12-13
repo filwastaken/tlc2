@@ -19,7 +19,7 @@
 #include "ns3/yans-wifi-helper.h"
 
 /**
- *          Network Topology 
+ *          Network Topology
  *          Wifi 192.168.1.0
  *      *    *    *    *     *
  *      |    |    |    |     |
@@ -40,9 +40,9 @@
  *  -  UDPEcho Client on n3, sends 2 packets to n0 ad 2s and 4s
  *  -  UDPEcho Client on n4, sends 2 packets to n0 at 1s and 2s
  *     - Packet trace active on node n2
- * 
+ *
  *  (packet size 512bytes)
- * 
+ *
  **/
 
 using namespace ns3;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
     NetDeviceContainer WifiDevices = wifi.Install(phy, mac, WifiContainer);
 
     MobilityHelper mobility;
-    mobility.SetPositionAllocator("ns3::GridPositionAllocator", 
+    mobility.SetPositionAllocator("ns3::GridPositionAllocator",
         "MinX", DoubleValue(0.0),
         "MinY", DoubleValue(0.0),
         "DeltaX", DoubleValue(5.0),
@@ -108,16 +108,18 @@ int main(int argc, char* argv[]){
         "LayoutType", StringValue("RowFirst")
     );
 
-    mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
-        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90)));
+    mobility.SetMobilityModel(
+        "ns3::RandomWalk2dMobilityModel",
+        "Bounds", RectangleValue(Rectangle(-90, 90, -90, 90))
+    );
 
     mobility.Install(WifiContainer);
 
     // Installing the StackHelper on every node
     InternetStackHelper stack;
     stack.Install(WifiContainer); // same as stack.Install(NodeContainer::GetGlobal());
-    
-    //Ipv4 
+
+    //Ipv4
     Ipv4AddressHelper address;
     address.SetBase("192.168.1.0", "/24");
     address.Assign(WifiDevices);
@@ -138,7 +140,7 @@ int main(int argc, char* argv[]){
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
     uint16_t port = 20;
-    UdpEchoServerHelper echoServer(port); 
+    UdpEchoServerHelper echoServer(port);
 
     ApplicationContainer serverApps = echoServer.Install(n0);
     // Since start and stop are not given, it is being set as the entire simulation time
@@ -158,22 +160,21 @@ int main(int argc, char* argv[]){
     ApplicationContainer n4_ClientApp = n4_Client.Install(n4);
     //Second packets gets sent and then stops (before third one)
     n4_ClientApp.Start(Seconds(1.0)); n4_ClientApp.Stop(Seconds(2.5));
-    
-    
+
+
     //configuring pcap
 
     string pcap_name = "task1-" + state + "-" + to_string(WifiContainer.Get(2)->GetId()) + ".pcap";
     phy.EnablePcap(pcap_name, WifiDevices.Get(2), true, true);
-    
-    //netanim
 
+    //netanim
     AnimationInterface anim("wireless-task1-rts-" + state + ".xml");
     if(useNetAnim){
         //N0 EchoServer
         string n0_Anim_Name = "SRV-" + to_string(WifiContainer.Get(0)->GetId());
         anim.UpdateNodeDescription(n0, n0_Anim_Name);
         anim.UpdateNodeColor(n0, 255, 0, 0);   //RED
-    
+
         //N3 Echoclient
         string n3_Anim_Name= "CLI-" + to_string(WifiContainer.Get(3)->GetId());
         anim.UpdateNodeDescription(n3, n3_Anim_Name);
@@ -194,11 +195,11 @@ int main(int argc, char* argv[]){
         anim.UpdateNodeDescription (n2, n2_Anim_Name);
         anim.UpdateNodeColor (n2, 0, 0, 255); //BLUE
 
-        anim.EnablePacketMetadata(); 
-        anim.EnableWifiMacCounters(Seconds(0), Seconds(7)); 
-        anim.EnableWifiPhyCounters(Seconds(0), Seconds(7)); 
+        anim.EnablePacketMetadata();
+        anim.EnableWifiMacCounters(Seconds(0), Seconds(7));
+        anim.EnableWifiPhyCounters(Seconds(0), Seconds(7));
     }
-    
+
     NS_LOG_INFO("Run Simulation.");
     Simulator::Stop(Seconds(7.0));
     Simulator::Run();
@@ -207,4 +208,3 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
-
