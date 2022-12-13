@@ -195,10 +195,6 @@ int main(int argc, char* argv[]){
         anim.UpdateNodeColor (n2, 0, 0, 255); //BLUE
 
         anim.EnablePacketMetadata(); 
-        anim.EnableIpv4RouteTracking("task1-" + state + "-routingtable-wireless.xml",
-            Seconds(0),     // Start
-            Seconds(7),     // Finish
-            Seconds(0.25)); // Interval
         anim.EnableWifiMacCounters(Seconds(0), Seconds(7)); 
         anim.EnableWifiPhyCounters(Seconds(0), Seconds(7)); 
     }
