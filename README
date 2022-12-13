@@ -2,3 +2,4 @@ Please launch this launcher as
 ./launcher
 in the same folder where task1 and task2 are located.
 No need to move them in the ns3 folder, everything is being taken care of already
+The .pcap files and .xml files for netadmin will be moved to the folder where launcher, task1.cc and task2.cc are located
