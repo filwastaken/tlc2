@@ -23,3 +23,4 @@ mv wireless-task2-rts-on.xml $CURRENTDIR
 rm scratch/tempfolder/task2.cc
 rmdir scratch/tempfolder
 cd $CURRENTDIR
+zip HW2.zip *.pcap *.xml
